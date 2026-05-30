@@ -92,6 +92,9 @@ test.describe('Role-based access — viewer', () => {
 
     await viewerPage.getByTestId('quick-new-transaction').click();
     await viewerPage.waitForSelector('[data-testid="transactions-tbody"]', { state: 'visible' });
+    // Allow up to 3 seconds for the form dialog to open — in CI the modal can
+    // render slightly after the tbody is visible.
+    await viewerPage.waitForSelector('[data-testid="transaction-form"]', { state: 'visible', timeout: 3000 }).catch(() => {});
 
     const form = viewerPage.getByTestId('transaction-form');
     const formVisible = await form.isVisible().catch(() => false);
