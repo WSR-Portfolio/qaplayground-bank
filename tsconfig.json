@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    // Strict mode catches implicit `any` and non-null dereferences early
+    // and is the standard expectation in any professional TypeScript codebase.
+    "strict": true,
+    "target": "ES2022",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "outDir": "./dist"
+  },
+  "include": ["tests/**/*.ts", "pages/**/*.ts", "fixtures/**/*.ts", "helpers/**/*.ts", "playwright.config.ts"]
+}

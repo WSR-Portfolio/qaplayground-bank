@@ -1,0 +1,54 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      BASE_URL:          ${{ secrets.BASE_URL }}
+      ADMIN_USERNAME:    ${{ secrets.ADMIN_USERNAME }}
+      ADMIN_PASSWORD:    ${{ secrets.ADMIN_PASSWORD }}
+      VIEWER_USERNAME:   ${{ secrets.VIEWER_USERNAME }}
+      VIEWER_PASSWORD:   ${{ secrets.VIEWER_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Cache node_modules by lockfile hash — invalidated only when dependencies
+      # change, reused on every run where they haven't.
+      - uses: actions/cache@v4
+        id: node-cache
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # --with-deps installs OS-level dependencies (fonts, libs) that Chromium
+      # requires on Ubuntu. Skipping this step causes browser launch failures.
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      # Upload the HTML report only on failure — most useful when something is
+      # wrong, and avoids accumulating artifacts on every green run.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
