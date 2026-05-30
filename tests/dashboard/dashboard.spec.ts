@@ -97,6 +97,9 @@ test.describe('Dashboard', () => {
     const initialCount = await dash.getRecentTransactionCount();
 
     await adminPage.goto('/bank/transactions');
+    // Wait for the button to be present before dispatching — in CI the page
+    // loads slower and the button may not be in the DOM at evaluate time.
+    await adminPage.waitForSelector('[data-testid="new-transaction-button"]', { state: 'attached' });
     // new-transaction-button has the same collapsed-header layout issue as the
     // add-account and open-wizard buttons — JS dispatch is the reliable trigger.
     await adminPage.evaluate(() => {

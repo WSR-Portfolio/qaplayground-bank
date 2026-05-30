@@ -10,17 +10,26 @@ dotenv.config();
 export default defineConfig({
   testDir: './tests',
 
-  // Design decision: retries are 0 during development so every failure surfaces
-  // immediately. Flaky tests should be fixed, not silently retried. Re-enable
-  // (set to 2) once the suite is stable and running in CI.
-  retries: 0,
+  // 1 retry in CI absorbs transient network slowness hitting the remote demo
+  // site — timeouts on page.goto and auth redirects are environmental, not
+  // test bugs. 0 retries locally keeps feedback immediate.
+  retries: process.env.CI ? 1 : 0,
 
-  fullyParallel: true,
+  // 1 worker in CI serialises requests to the remote demo site, preventing
+  // rate-limiting and resource contention that caused intermittent page.goto
+  // timeouts when multiple workers hit the site in parallel.
+  workers: process.env.CI ? 1 : undefined,
+
+  fullyParallel: !process.env.CI,
   forbidOnly: !!process.env.CI,
 
   // 30 000 ms for CI — the remote demo app is slower under GitHub Actions than
-  // on a local connection. 10 000 ms caused navigation and form-open timeouts in CI.
+  // on a local connection.
   timeout: 30000,
+
+  // 15 000 ms for expect() assertions — the default 5 000 ms is too tight for
+  // auth redirects on the remote demo site in CI.
+  expect: { timeout: 15000 },
 
   reporter: 'html',
 
