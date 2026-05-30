@@ -18,9 +18,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
 
-  // Design decision: 10 000 ms gives enough headroom for the demo app without
-  // masking genuinely slow interactions that should be investigated.
-  timeout: 10000,
+  // 30 000 ms for CI — the remote demo app is slower under GitHub Actions than
+  // on a local connection. 10 000 ms caused navigation and form-open timeouts in CI.
+  timeout: 30000,
 
   reporter: 'html',
 
