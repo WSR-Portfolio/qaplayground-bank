@@ -18,11 +18,11 @@ jobs:
       VIEWER_PASSWORD:   ${{ secrets.VIEWER_PASSWORD }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: lts/*
 
       # Cache node_modules by lockfile hash — invalidated only when dependencies
       # change, reused on every run where they haven't.
@@ -46,7 +46,7 @@ jobs:
 
       # Upload the HTML report only on failure — most useful when something is
       # wrong, and avoids accumulating artifacts on every green run.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
