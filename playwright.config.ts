@@ -1,11 +1,4 @@
-// Design decision: dotenv is loaded here so process.env vars are available
-// before Playwright resolves any config values. Credentials live in .env
-// rather than hardcoded — the pattern signals to reviewers that the author
-// knows not to commit secrets, and maps cleanly to GitHub Actions secrets in CI.
-import dotenv from 'dotenv';
 import { defineConfig, devices } from '@playwright/test';
-
-dotenv.config();
 
 export default defineConfig({
   testDir: './tests',
@@ -35,8 +28,8 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
-    // Design decision: baseURL is read from .env so the same config works
-    // locally and in CI without code changes.
+    // SecureBank's demo logins are public, so no .env or secrets are needed.
+    // BASE_URL can still be set to point the suite at another copy of the app.
     baseURL: process.env.BASE_URL ?? 'https://qaplayground.com/bank',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',

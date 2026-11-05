@@ -1,49 +1,49 @@
-// Auth fixture
+// Auth fixtures
 //
-// Centralises login setup so every spec imports from here rather than
-// duplicating login logic in beforeEach blocks.
-//
-// Why a custom fixture rather than beforeEach:
-// Playwright fixtures compose cleanly and handle setup/teardown automatically.
-// A beforeEach that calls loginPage.loginAsAdmin() in every spec file duplicates
-// login logic across five files and is harder to maintain. Importing adminPage
-// from this fixture is the idiomatic Playwright pattern and demonstrates
-// framework knowledge to a reviewer.
-//
-// Why both adminPage and viewerPage live in one file:
-// They share the same structure and are always imported together — RBAC tests
-// need viewerPage, all other tests need adminPage. One file keeps the fixture
-// surface area minimal.
+// One fixture per persona, so a test declares the account state it needs in its
+// signature. Each browser context starts empty and the app keeps its state in
+// localStorage, so every test gets freshly seeded data and tests cannot affect
+// each other.
 //
 // Why each fixture asserts the post-login URL:
-// If login silently fails (wrong credentials, network error, session issue),
-// tests will produce confusing failures deep in the test body rather than at
-// the setup step. The URL assertion is a fast-fail guard that surfaces the
-// root cause immediately.
+// A failed login should stop in setup with a clear error, not surface later as
+// a confusing failure deep in the test body.
 
-import { test as base, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import { test as base, expect, type Page } from '@playwright/test';
 import LoginPage from '../pages/LoginPage';
+import { USERS } from '../helpers/testData';
+
+type Persona = keyof typeof USERS;
+
+async function loginAs(page: Page, persona: Persona): Promise<void> {
+  const loginPage = new LoginPage(page);
+  await loginPage.goto();
+  await loginPage.login(USERS[persona].username, USERS[persona].password);
+  await expect(page).toHaveURL(/\/bank\/dashboard/);
+}
 
 type AuthFixtures = {
-  adminPage: Page;
-  viewerPage: Page;
+  standardPage: Page;
+  frozenPage: Page;
+  overdraftPage: Page;
+  errorPage: Page;
 };
 
 export const test = base.extend<AuthFixtures>({
-  adminPage: async ({ page }, use) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.loginAsAdmin();
-    await expect(page).toHaveURL(/\/bank\/dashboard/);
+  standardPage: async ({ page }, use) => {
+    await loginAs(page, 'standard');
     await use(page);
   },
-
-  viewerPage: async ({ page }, use) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.loginAsViewer();
-    await expect(page).toHaveURL(/\/bank\/dashboard/);
+  frozenPage: async ({ page }, use) => {
+    await loginAs(page, 'frozen');
+    await use(page);
+  },
+  overdraftPage: async ({ page }, use) => {
+    await loginAs(page, 'overdraft');
+    await use(page);
+  },
+  errorPage: async ({ page }, use) => {
+    await loginAs(page, 'error');
     await use(page);
   },
 });

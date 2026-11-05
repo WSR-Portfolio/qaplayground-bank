@@ -1,33 +1,47 @@
-// Test data helper
+// Test data
 //
-// Why Date.now() for unique names rather than a UUID library:
-// No additional dependency needed. Millisecond precision is sufficient to avoid
-// collisions within a single test run, and the output is human-readable in test
-// logs and failure reports. A UUID would work but adds a dependency for no
-// practical benefit here.
+// Why credentials live in source rather than secrets:
+// SecureBank publishes every one of these logins on its own login page. They
+// are demo personas, not credentials, and storing them as secrets would only
+// add a setup step without protecting anything.
 //
-// Why deposit/withdrawal amounts are hardcoded strings rather than random numbers:
-// Randomised amounts make balance-math assertions fragile and harder to debug.
-// Fixed amounts ("500", "100") mean a developer reading a failure can immediately
-// calculate the expected balance without reconstructing what the random value was.
-//
-// Why amounts are strings not numbers:
-// POM methods (TransactionsPage, OpenAccountWizard) accept string amounts because
-// they model the UI's text inputs directly. Keeping amounts as strings here
-// avoids String() conversions at every call site.
+// Why each persona exists:
+// The personas are the app's built-in test states. Reaching a frozen or
+// overdrawn account through a persona is more reliable than building that
+// state up through the UI first.
 
-export function makeAccountName(): string {
-  return `Test Account ${Date.now()}`;
+export const USERS = {
+  standard: { username: 'standard_user', password: 'bank_sauce' },
+  locked: { username: 'locked_user', password: 'bank_sauce' },
+  frozen: { username: 'frozen_user', password: 'bank_sauce' },
+  overdraft: { username: 'overdraft_user', password: 'bank_sauce' },
+  error: { username: 'error_user', password: 'bank_sauce' },
+} as const;
+
+export const ACCOUNTS = { checking: 'Everyday Checking', savings: 'High-Yield Savings' } as const;
+
+// An amount above Everyday Checking's seeded balance for standard_user.
+export const OVER_BALANCE = '5000';
+
+// Fixed amounts make balance assertions readable: a failure can be checked by
+// hand without reconstructing a random value.
+export const AMOUNT = { transfer: 25, send: 20, bill: 15, loan: 5000 } as const;
+
+export function unique(prefix: string): string {
+  return `${prefix} ${Date.now()}`;
 }
 
-export function makeDepositAmount(): string {
-  return '500';
+// Converts display text such as "-$342.18" or "$17,050.00" to a number.
+export function parseMoney(text: string): number {
+  const value = Number(text.replace(/[^0-9.-]/g, ''));
+  if (Number.isNaN(value)) throw new Error(`Not a money value: "${text}"`);
+  return value;
 }
 
-export function makeWithdrawalAmount(): string {
-  return '100';
+export function sum(values: number[]): number {
+  return Math.round(values.reduce((total, v) => total + v, 0) * 100) / 100;
 }
 
-export function makeAccountType(type: 'Savings' | 'Checking' = 'Savings'): 'Savings' | 'Checking' {
-  return type;
-}
+// A date far enough ahead that it stays valid for years of CI runs.
+export const FUTURE_DATE = '2099-01-01';
+export const PAST_DATE = '2020-01-01';
