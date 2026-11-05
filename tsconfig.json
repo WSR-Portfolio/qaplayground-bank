@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["node"],
     // Strict mode catches implicit `any` and non-null dereferences early
     // and is the standard expectation in any professional TypeScript codebase.
     "strict": true,

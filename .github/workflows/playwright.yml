@@ -5,17 +5,11 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-
-    env:
-      BASE_URL:          ${{ secrets.BASE_URL }}
-      ADMIN_USERNAME:    ${{ secrets.ADMIN_USERNAME }}
-      ADMIN_PASSWORD:    ${{ secrets.ADMIN_PASSWORD }}
-      VIEWER_USERNAME:   ${{ secrets.VIEWER_USERNAME }}
-      VIEWER_PASSWORD:   ${{ secrets.VIEWER_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v5
